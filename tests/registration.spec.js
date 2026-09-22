@@ -17,7 +17,7 @@ test('register, validate email, download a pass, log out and retrieve it', async
   await page.screenshot({ path: 'test-results/desktop-pass.png', fullPage: true, animations: 'disabled' });
   const downloadEvent = page.waitForEvent('download');
   await page.getByRole('button', { name: 'Descargar mi pase' }).click();
-  expect((await downloadEvent).suggestedFilename()).toMatch(/pase-business-conference-.*\.png/);
+  expect((await downloadEvent).suggestedFilename()).toMatch(/pase-los-didis-.*\.png/);
   await page.reload();
   await expect(page.getByRole('heading', { level: 1 })).toContainText('Mariana');
   await page.getByRole('button', { name: 'Cerrar sesión' }).click();

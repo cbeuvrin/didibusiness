@@ -25,13 +25,9 @@ function getRoute() {
 function navigate(path) { window.location.hash = path === 'inicio' ? '' : path; }
 
 function Brand({ compact = false }) {
-  return <a className={`brand ${compact ? 'brand-compact' : ''}`} href="#" aria-label="Business Conference, inicio">
-    <img src="/favicon.svg" width="38" height="38" alt="" />
-    <span>BUSINESS <span>CONFERENCE</span></span>
+  return <a className={`brand ${compact ? 'brand-compact' : ''}`} href="#" aria-label="Los DiDis, inicio">
+    <img src="/brand/los-didis-logo.png" width="1746" height="422" alt="Los DiDis 2026" />
   </a>;
-}
-function Geometry() {
-  return <div className="geometry" aria-hidden="true"><img className="geometry-top" src="/geometry.svg" alt="" /><img className="geometry-bottom" src="/geometry.svg" alt="" /></div>;
 }
 function EventDetails({ compact = false }) {
   return <div className={`event-details ${compact ? 'compact' : ''}`}>
@@ -43,7 +39,7 @@ function Landing() {
   return <>
     <div className="hero-content enter">
       <p className="eyebrow">El próximo encuentro empieza contigo</p>
-      <h1 className="hero-title"><span>BUSINESS</span><strong>CONFERENCE<span className="title-period">.</span></strong><span className="hero-year">2026</span></h1>
+      <h1 className="hero-title"><span className="sr-only">Los DiDis 2026</span><img src="/brand/los-didis-logo.png" width="1746" height="422" alt="" fetchPriority="high" /></h1>
       <p className="hero-description">{event.description}</p>
       <div className="hero-actions"><a className="button button-outline" href="#acceso">Ya estoy registrado</a><a className="button button-primary" href="#registro">Registrarme<ArrowUpRight size={20} /></a></div>
       <p className="hero-date">28 de octubre <span>/</span> 8:00 p. m.</p>
@@ -63,7 +59,7 @@ function Field({ label, name, type = 'text', autoComplete, placeholder, error, o
   return <div className="field"><label htmlFor={name}>{label}{!required && <span className="optional"> (opcional)</span>}</label><div className={`input-wrap ${error ? 'invalid' : ''}`}><Icon size={19} aria-hidden="true" /><input id={name} name={name} type={type} autoComplete={autoComplete} placeholder={placeholder} required={required} maxLength={type === 'email' ? 254 : 80} value={value} onChange={onChange} aria-invalid={Boolean(error)} aria-describedby={error ? `${name}-error` : undefined} /></div>{error && <span className="field-error" id={`${name}-error`}>{error}</span>}</div>;
 }
 function FormAside() {
-  return <aside className="form-aside"><span className="aside-mark" aria-hidden="true" /><p className="section-label">Business Conference</p><h2>Las ideas conectan.<br />Las personas<br /><span>las hacen posibles.</span></h2><p>Nos alegra que seas parte<br />de este encuentro.</p><EventDetails compact /></aside>;
+  return <aside className="form-aside"><span className="aside-mark" aria-hidden="true" /><p className="section-label">Los DiDis</p><h2>Las ideas conectan.<br />Las personas<br /><span>las hacen posibles.</span></h2><p>Nos alegra que seas parte<br />de este encuentro.</p><EventDetails compact /></aside>;
 }
 function RegistrationForm({ onAuthenticated }) {
   const [values, setValues] = useState({ firstName: '', lastName: '', secondLastName: '', email: '', confirmEmail: '' });
@@ -123,7 +119,7 @@ function Confirmation({ attendee }) {
   const [downloaded, setDownloaded] = useState(false);
   useEffect(() => {
     let active = true;
-    QRCode.toDataURL(`conference-demo:${attendee.id}`, { width: 420, margin: 4, color: { dark: '#14132f', light: '#ffffff' }, errorCorrectionLevel: 'M' }).then(url => { if (active) setQr(url); }).catch(() => { if (active) setError('No pudimos generar el QR. Recarga la página para intentarlo de nuevo.'); });
+    QRCode.toDataURL(`conference-demo:${attendee.id}`, { width: 420, margin: 4, color: { dark: '#24160f', light: '#ffffff' }, errorCorrectionLevel: 'M' }).then(url => { if (active) setQr(url); }).catch(() => { if (active) setError('No pudimos generar el QR. Recarga la página para intentarlo de nuevo.'); });
     return () => { active = false; };
   }, [attendee.id]);
   async function download() {
@@ -132,15 +128,18 @@ function Confirmation({ attendee }) {
       const canvas = document.createElement('canvas'); canvas.width = 1000; canvas.height = 1400;
       const ctx = canvas.getContext('2d');
       ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, 1000, 1400);
-      ctx.fillStyle = '#21afd4'; ctx.fillRect(0, 0, 1000, 18);
-      ctx.fillStyle = '#14132f'; ctx.textAlign = 'center'; ctx.font = '800 52px Manrope Variable'; ctx.fillText('BUSINESS CONFERENCE', 500, 120);
-      ctx.font = '500 26px Manrope Variable'; ctx.fillText('PASE DE DEMOSTRACIÓN', 500, 184);
+      const background = new Image(); background.src = '/brand/los-didis-background.jpg'; await background.decode();
+      ctx.drawImage(background, 0, 760, 2000, 480, 0, 0, 1000, 240);
+      const logo = new Image(); logo.src = '/brand/los-didis-logo.png'; await logo.decode();
+      ctx.drawImage(logo, 200, 28, 600, 145);
+      ctx.fillStyle = '#24160f'; ctx.textAlign = 'center';
+      ctx.font = '500 26px Manrope Variable'; ctx.fillText('PASE DE DEMOSTRACIÓN', 500, 212);
       const img = new Image(); img.src = qr; await img.decode(); ctx.drawImage(img, 225, 230, 550, 550);
       ctx.font = '700 38px Manrope Variable'; ctx.fillText(attendee.firstName, 500, 850, 860);
       ctx.font = '500 30px Manrope Variable'; ctx.fillText(`${attendee.lastName} ${attendee.secondLastName}`, 500, 900, 860);
       ctx.font = '500 25px Manrope Variable'; ctx.fillText(event.date, 500, 1010); ctx.fillText(event.venue, 500, 1060);
       ctx.font = '400 20px Manrope Variable'; ctx.fillText(`Folio: ${attendee.id}`, 500, 1170); ctx.fillText('Pase de prueba, sin validez para acceso a un evento.', 500, 1280);
-      const link = document.createElement('a'); link.download = `pase-business-conference-${attendee.id.slice(0, 8)}.png`; link.href = canvas.toDataURL('image/png'); document.body.appendChild(link); link.click(); link.remove(); setDownloaded(true);
+      const link = document.createElement('a'); link.download = `pase-los-didis-${attendee.id.slice(0, 8)}.png`; link.href = canvas.toDataURL('image/png'); document.body.appendChild(link); link.click(); link.remove(); setDownloaded(true);
     } catch { setError('No pudimos descargar tu pase. Inténtalo de nuevo.'); }
   }
   return <div className="confirmation enter"><section><div className="success-icon"><Check size={24} weight="bold" /></div><p className="section-label">Registro de demostración completo</p><h1>¡Nos vemos ahí,<br /><span>{attendee.firstName}!</span></h1><p className="confirmation-intro">Tu pase está listo. Descárgalo y tenlo a la mano para el día del encuentro.</p><EventDetails /><p className="demo-notice">Este es un pase de prueba, sin validez para acceso a un evento.</p></section><section className="ticket" aria-label="Tu pase de acceso"><div className="ticket-heading"><Brand compact /><span>PASE PERSONAL</span></div><div className="qr-wrap">{qr ? <img src={qr} width="210" height="210" alt="Código QR de tu pase de demostración" /> : <p role="status">Generando tu QR…</p>}</div><h2>{attendee.firstName} {attendee.lastName}</h2><p className="ticket-email">{attendee.email}</p><div className="ticket-divider" /><div className="ticket-folio"><span>FOLIO DE REGISTRO</span><strong>{attendee.id.slice(0, 8).toUpperCase()}</strong></div><button className="button button-primary" disabled={!qr} onClick={download}>Descargar mi pase<DownloadSimple size={19} /></button>{downloaded && <p role="status" className="download-status">Tu pase se ha descargado.</p>}{error && <p role="alert" className="form-message">{error}</p>}</section></div>;
@@ -163,7 +162,7 @@ function App() {
   }, [route, attendee]);
   const home = route === 'inicio';
   const logout = () => { try { sessionStorage.removeItem(SESSION_KEY); } catch { /* In-memory session is still cleared. */ } setRoute('inicio'); setAttendee(null); navigate('inicio'); };
-  return <><a className="skip-link" href="#main-content" onClick={e => { e.preventDefault(); mainRef.current?.focus(); }}>Ir al contenido</a><div className={`stage ${home ? 'landing-stage' : 'inner-stage'} ${route === 'confirmacion' ? 'confirmation-stage' : ''}`}><Geometry /><header className="header"><Brand /><nav aria-label="Navegación principal">{home ? <a className="header-link" href="#evento" onClick={e => { e.preventDefault(); document.getElementById('evento')?.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth' }); }}>Acerca del evento<ArrowDownIcon /></a> : route === 'confirmacion' && attendee ? <button className="header-link" onClick={logout}>Cerrar sesión<SignOut size={17} /></button> : <a className="header-link" href="#"><ArrowLeft size={17} />Volver al inicio</a>}</nav></header><main id="main-content" tabIndex={-1} ref={mainRef} key={route}>{home ? <Landing /> : route === 'registro' ? <RegistrationForm onAuthenticated={setAttendee} /> : route === 'acceso' ? <LoginForm onAuthenticated={setAttendee} /> : attendee ? <Confirmation attendee={attendee} /> : null}</main></div>{home && <Information />}<footer className="footer"><span>Business Conference</span><p>Ideas. Personas. Nuevas posibilidades.</p><span className="footer-demo">Vista de demostración</span></footer></>;
+  return <><a className="skip-link" href="#main-content" onClick={e => { e.preventDefault(); mainRef.current?.focus(); }}>Ir al contenido</a><div className={`stage ${home ? 'landing-stage' : 'inner-stage'} ${route === 'confirmacion' ? 'confirmation-stage' : ''}`}><header className="header"><Brand /><nav aria-label="Navegación principal">{home ? <a className="header-link" href="#evento" onClick={e => { e.preventDefault(); document.getElementById('evento')?.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth' }); }}>Acerca del evento<ArrowDownIcon /></a> : route === 'confirmacion' && attendee ? <button className="header-link" onClick={logout}>Cerrar sesión<SignOut size={17} /></button> : <a className="header-link" href="#"><ArrowLeft size={17} />Volver al inicio</a>}</nav></header><main id="main-content" tabIndex={-1} ref={mainRef} key={route}>{home ? <Landing /> : route === 'registro' ? <RegistrationForm onAuthenticated={setAttendee} /> : route === 'acceso' ? <LoginForm onAuthenticated={setAttendee} /> : attendee ? <Confirmation attendee={attendee} /> : null}</main></div>{home && <Information />}<footer className="footer"><span>Los DiDis</span><p>Ideas. Personas. Nuevas posibilidades.</p><span className="footer-demo">Vista de demostración</span></footer></>;
 }
 function ArrowDownIcon() { return <ArrowRight size={15} style={{ transform: 'rotate(90deg)' }} aria-hidden="true" />; }
 

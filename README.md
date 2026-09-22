@@ -1,6 +1,6 @@
-# Business Conference 2026
+# Los DiDis 2026
 
-Ejemplo navegable de una landing de registro, inspirado en las referencias proporcionadas. Fondo blanco y geometrías azul marino y turquesa integradas en las esquinas superior derecha e inferior izquierda.
+Ejemplo navegable de una landing de registro, inspirado en las referencias proporcionadas. Fondo naranja original de Los DiDis con geometrías integradas y logotipo oficial, exportado del archivo Illustrator a PNG transparente para la web y el pase descargable. Los recursos web están en `public/brand/`.
 
 ## Uso
 
