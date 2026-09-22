@@ -27,6 +27,7 @@ button { color: inherit; }
 main:focus { outline: none; }
 .stage main { display: flow-root; }
 .skip-link { position: fixed; top: 10px; left: 10px; padding: 12px 20px; background: var(--ink); color: white; transform: translateY(-160%); z-index: 5; }
+.skip-link:not(:focus) { clip-path: inset(100%); pointer-events: none; }
 .skip-link:focus { transform: translateY(0); }
 .stage { position: relative; isolation: isolate; overflow: clip; background: #f4770b; }
 /* Keep the original artwork's square corners intact as the page changes shape.
@@ -219,3 +220,60 @@ main:focus { outline: none; }
 .confirmation > section:first-child .section-label, .confirmation-intro,
 .confirmation > section:first-child .demo-notice, .confirmation .event-details small, .confirmation .event-details svg { color: var(--ink); }
 .confirmation .event-details { border-color: #75310e55; }
+
+.access-copy { margin-top: 6px; padding: 10px 0; border: 0; background: transparent; font-size: 12px; font-weight: 700; text-decoration: underline; text-underline-offset: 3px; }
+.session-status { max-width: 600px; margin: 80px auto; padding: 28px; text-align: center; }
+.session-status h1 { font-size: 28px; }
+.session-status p { margin: 18px 0; line-height: 1.7; }
+.session-status > a { display: block; margin-top: 20px; text-decoration: underline; }
+
+.privacy-field { margin-top: 22px; }
+.privacy-field label { display: flex; align-items: flex-start; gap: 10px; font-size: 12px; line-height: 1.6; }
+.privacy-field input { flex: 0 0 18px; width: 18px; height: 18px; margin: 2px 0; accent-color: var(--ink); }
+.privacy-field a { text-decoration: underline; text-underline-offset: 3px; font-weight: 700; }
+.privacy-field > p { margin-top: 8px; font-size: 11px; line-height: 1.7; color: var(--muted); }
+.email-sent { margin-top: 26px; padding: 20px; background: var(--surface); border-radius: 6px; }
+.email-sent h2 { font-size: 20px; }
+.email-sent p { margin-top: 10px; font-size: 13px; line-height: 1.8; }
+.badge-event { margin-top: 14px; font-size: 11px; line-height: 1.8; color: var(--muted); }
+.staff-signin { max-width: 540px; padding: 0 24px; margin: 40px auto 90px; }
+.staff-layout { max-width: 1440px; padding: 20px 40px 80px; margin: auto; }
+.staff-heading, .attendance-heading { display: flex; align-items: center; justify-content: space-between; gap: 20px; }
+.staff-heading { margin-bottom: 28px; }
+.staff-heading h1 { font-size: clamp(30px, 4vw, 44px); letter-spacing: -.04em; }
+.staff-heading .section-label { color: var(--ink); margin-bottom: 10px; }
+.staff-heading p:last-child { margin-top: 10px; font-size: 12px; line-height: 1.7; }
+.staff-grid { display: grid; grid-template-columns: minmax(0, .85fr) minmax(0, 1.15fr); gap: 24px; margin-top: 20px; align-items: start; }
+.scanner-panel, .attendance-panel { padding: 28px; background: #fffcf8; border-radius: 14px; min-width: 0; }
+.staff-grid h2 { font-size: 23px; letter-spacing: -.03em; }
+.scanner-panel > p { margin: 12px 0; font-size: 13px; line-height: 1.7; }
+.camera-preview { position: relative; aspect-ratio: 4 / 3; margin: 20px 0; background: #24160f; border-radius: 8px; overflow: hidden; }
+.camera-preview video { display: block; width: 100%; height: 100%; object-fit: cover; }
+.camera-preview > span { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; color: #fff8ef; font-size: 13px; pointer-events: none; }
+.scanner-actions { display: flex; gap: 10px; }
+.manual-scan { margin: 24px 0; }
+.manual-scan label { display: block; font-size: 12px; font-weight: 650; }
+.manual-scan input { width: 100%; min-width: 0; display: block; margin: 10px 0; padding: 12px; border: 1px solid var(--line); border-radius: 5px; font-size: 16px; }
+.scan-result { margin-top: 22px; padding: 20px; background: #fff0dd; border-radius: 8px; }
+.scan-result-accepted { background: #e8f3e9; color: #24572c; }
+.scan-result h3 { margin: 8px 0; font-size: 20px; }
+.scan-result p { margin: 6px 0; font-size: 13px; line-height: 1.7; }
+.scan-result small { font-size: 11px; }
+.attendance-totals { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; padding: 22px 0; margin: 0; border-bottom: 1px solid var(--line); }
+.attendance-totals dt { font-size: 11px; color: var(--muted); }
+.attendance-totals dd { font-size: 32px; font-weight: 700; margin: 5px 0 0; font-variant-numeric: tabular-nums; }
+.attendance-table { overflow-x: auto; margin-top: 20px; }
+.attendance-table table { width: 100%; border-collapse: collapse; text-align: left; font-size: 12px; line-height: 1.7; }
+.attendance-table th, .attendance-table td { padding: 12px 10px; border-bottom: 1px solid var(--line); }
+.attendance-table th { font-size: 11px; color: var(--muted); }
+.attendance-table td:first-child { overflow-wrap: anywhere; }
+.empty-log { padding: 30px 0; font-size: 13px; color: var(--muted); }
+.log-pagination { display: flex; align-items: center; justify-content: space-between; gap: 15px; margin-top: 14px; font-size: 12px; }
+@media (max-width: 960px) { .staff-grid { grid-template-columns: minmax(0, 1fr); } }
+@media (max-width: 767px) {
+  .staff-layout { padding: 16px 18px 60px; }
+  .staff-heading { align-items: flex-start; flex-direction: column; }
+  .scanner-panel, .attendance-panel { padding: 22px 18px; }
+  .attendance-heading { align-items: flex-start; }
+  .attendance-totals dd { font-size: 28px; }
+}

@@ -7,16 +7,22 @@
     "dev": "vite --host 127.0.0.1",
     "build": "vite build",
     "preview": "vite preview --host 127.0.0.1",
-    "test": "playwright test"
+    "test": "playwright test",
+    "test:db": "node --test tests/database/*.test.mjs",
+    "check:supabase": "node scripts/check-supabase.mjs"
   },
   "dependencies": {
     "@fontsource-variable/manrope": "^5.2.5",
     "@phosphor-icons/react": "^2.1.10",
+    "@supabase/supabase-js": "^2.117.0",
+    "@zxing/browser": "^0.1.5",
+    "@zxing/library": "^0.21.3",
     "qrcode": "^1.5.4",
     "react": "^19.1.0",
     "react-dom": "^19.1.0"
   },
   "devDependencies": {
+    "@electric-sql/pglite": "^0.5.8",
     "@playwright/test": "^1.51.1",
     "@vitejs/plugin-react": "^4.4.1",
     "vite": "^6.3.5"
