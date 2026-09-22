@@ -29,7 +29,7 @@ Sigue [`supabase/README.md`](supabase/README.md). La migración 001 ya se aplic�
 
 El aviso de privacidad y los nombres definitivos de los dos campos todavía no están definidos. Los dos campos están implementados pero ocultos. Para mostrarlos, activa `registrationForm.showAdditionalFields` en `src/config.js`; sus etiquetas siguen siendo configurables en Supabase. Hasta configurar un aviso aprobado, el formulario no permite nuevos registros.
 
-El acceso por enlace requiere configurar SMTP y las URLs de redirección en Supabase. El correo automático de confirmación con el QR es una integración adicional pendiente: `email_deliveries` conserva trabajos en `pending_setup`, sin trabajador de envío implementado.
+El acceso por enlace requiere configurar SMTP y las URLs de redirección en Supabase. El correo automático con QR ya tiene plantilla de marca, función de envío con Resend y reintentos. Su activación requiere la migración 003, secretos del servidor y programador; consulta [`supabase/EMAIL_SETUP.md`](supabase/EMAIL_SETUP.md). Los trabajos históricos `pending_setup` no se envían automáticamente.
 
 Antes de usar el lector hay que autorizar al personal y abrir el acceso del evento. Se conserva el modo de prueba; la fecha y sede siguen pendientes de confirmación. La portada usa `src/config.js` y texto en `src/main.jsx`; el gafete utiliza los datos del evento guardados en Supabase.
 

@@ -43,7 +43,7 @@ Consulta la documentación oficial de [acceso sin contraseña](https://supabase.
 
 El enlace autentica la dirección; `get_my_registration` recupera únicamente el pase de esa identidad con correo confirmado. No basta con conocer la dirección de otro asistente. La credencial local de continuidad del registro se mantiene interna para recargas y reintentos; no se muestra ni se incluye en el gafete.
 
-**Correo de confirmación con QR:** sigue pendiente configurar el proveedor e implementar el trabajador y seguimiento de entregas de `email_deliveries`. El flujo de enlaces de Supabase Auth es independiente de ese correo.
+**Correo de confirmación con QR:** la plantilla de marca y el trabajador Resend están implementados. Sigue [`EMAIL_SETUP.md`](EMAIL_SETUP.md) para aplicar 003 y activar el envío. El flujo de enlaces de Supabase Auth es independiente; el seguimiento de entrega/rebote aún se consulta en Resend.
 
 ## 4. Autorizar al personal
 

@@ -1,0 +1,8 @@
+{
+  "functions": {
+    "api/cron/registration-emails.js": {
+      "maxDuration": 60,
+      "includeFiles": "{public/brand/**,node_modules/@fontsource/manrope/files/manrope-latin-400-normal.woff}"
+    }
+  }
+}

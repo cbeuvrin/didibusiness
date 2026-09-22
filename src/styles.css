@@ -277,3 +277,7 @@ main:focus { outline: none; }
   .attendance-heading { align-items: flex-start; }
   .attendance-totals dd { font-size: 28px; }
 }
+
+.footer { flex-wrap: wrap; }
+.legal-links { display: flex; flex-wrap: wrap; gap: 14px; }
+.legal-links a { text-decoration: underline; text-underline-offset: 3px; }
