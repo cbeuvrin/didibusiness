@@ -8,7 +8,8 @@ export function registrationEmail(job, { siteUrl = 'https://losdidis2026.com', q
   const background = `${site}/brand/los-didis-background.jpg`;
   const test = job.isTest ? 'PASE DE PRUEBA · SIN VALIDEZ DE ENTRADA' : 'TU ACCESO AL EVENTO';
   const subject = `${job.isTest ? '[PRUEBA] ' : ''}Tu gafete para ${job.eventName}`;
-  const text = `Hola, ${job.name}.\nTu registro para ${job.eventName} está confirmado.\n${test}\n${date} (Ciudad de México)\n${venue}\nPresenta el QR incluido en este correo al personal de acceso. Descarga también el gafete PDF adjunto. Guarda la imagen o el PDF antes de llegar; no necesitas internet para mostrarla.\nConsulta y descarga tu gafete: ${site}/#acceso\nTu QR es personal. No lo compartas.\nEste buzón no recibe respuestas.`;
+  const folio = job.passId ? `Folio: ${job.passId.slice(0,8).toUpperCase()} · ID: ${job.passId}` : '';
+  const text = `Hola, ${job.name}.\nTu registro para ${job.eventName} está confirmado.\n${test}\n${folio}\n${date} (Ciudad de México)\n${venue}\nPresenta el QR incluido en este correo al personal de acceso. Descarga también el gafete PDF adjunto. Guarda la imagen o el PDF antes de llegar; no necesitas internet para mostrarla.\nConsulta y descarga tu gafete: ${site}/#acceso\nTu QR es personal. No lo compartas.\nEste buzón no recibe respuestas.`;
   const html = `<!doctype html><html lang="es"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${escape(subject)}</title></head>
 <body style="margin:0;padding:0;background:#fff8ef;color:#24160f;font-family:Arial,Helvetica,sans-serif">
 <div style="display:none;max-height:0;overflow:hidden;mso-hide:all">Tu registro está confirmado. Guarda tu QR para el día del evento.</div>
@@ -22,6 +23,7 @@ export function registrationEmail(job, { siteUrl = 'https://losdidis2026.com', q
 <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#fffcf8;border-radius:12px"><tr><td align="center" style="padding:30px 20px">
 <p style="margin:0 0 18px;font-size:10px;letter-spacing:1px;font-weight:bold">${test}</p>
 <img src="${escape(qrSrc)}" width="232" height="232" alt="QR de acceso personal. Consulta tu gafete si no puedes ver esta imagen." style="display:block;width:232px;max-width:100%;height:auto;border:0;background:#ffffff">
+${folio ? `<p style="font-size:12px;overflow-wrap:anywhere">${escape(folio)}</p>` : ''}
 <h2 style="margin:20px 0 8px;font-size:22px;line-height:1.4;overflow-wrap:anywhere">${escape(job.name)}</h2>
 <p style="margin:0;font-size:13px;line-height:1.8">${escape(date)}<br>${job.startsAt ? 'Horario de Ciudad de México<br>' : ''}${escape(venue)}</p>
 <p style="margin:24px 0 0;padding-top:20px;border-top:1px dashed #deccbd;font-size:13px;line-height:1.7">Muestra este QR al personal de acceso.<br>Guárdalo en tu celular antes de llegar.<br>También puedes descargar el <strong>gafete PDF adjunto</strong>.</p>

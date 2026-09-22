@@ -69,3 +69,9 @@ Antes de abrir el evento real, confirma fecha y sede, configura correo y aviso, 
 ## Registro técnico anterior
 
 El 22 de septiembre se creó un único registro ficticio «Prueba técnica / Conexión Supabase», con correo `.invalid`, sin envío. [`manual/remove-connection-test.sql`](manual/remove-connection-test.sql) elimina exclusivamente ese registro y su pase si se decide retirarlo.
+
+## Entrada manual por folio
+
+Después de la migración 003, ejecutar `migrations/202609220004_manual_folio.sql` una sola vez. El personal autorizado puede buscar el folio de ocho caracteres o el UUID completo y confirmar el nombre antes de registrar el ingreso. La búsqueda no crea entradas. La confirmación usa `record_check_in`, con los mismos bloqueos, permisos y detección de duplicados que la cámara. Si varios pases comparten prefijo, se exige el identificador completo; nunca se elige uno al azar. Requiere internet.
+
+El correo y PDF nuevos incluyen folio e identificador completo. Los mensajes ya enviados y los trabajos con contenido congelado conservan su contenido original para no romper los reintentos de Resend. El PNG descargado desde la web ya muestra el identificador completo.

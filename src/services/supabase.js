@@ -30,6 +30,9 @@ export async function authenticatedRpc(name, parameters) {
       ACCESS_CLOSED: 'El control de entradas aún no está abierto.',
       EMAIL_VERIFICATION_REQUIRED: 'Abre el enlace enviado a tu correo para iniciar sesión.',
       PASS_NOT_FOUND: 'No encontramos un gafete activo para tu correo. Completa tu registro para obtenerlo.',
+      INVALID_FOLIO: 'Escribe el folio de 8 caracteres o el identificador completo.',
+      FOLIO_NOT_FOUND: 'No encontramos ese folio para este evento.',
+      FOLIO_AMBIGUOUS: 'Ese folio corto coincide con varios pases. Usa el identificador completo del gafete descargado.',
       INVALID_SCAN: 'No pudimos validar esta lectura. Vuelve a escanear el QR.',
     };
     throw new Error(messages[error.message] || 'No pudimos conectar con el servicio. Revisa tu conexión e inténtalo de nuevo.');

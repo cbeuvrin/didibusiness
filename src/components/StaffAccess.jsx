@@ -18,6 +18,8 @@ export default function StaffAccess() {
   const [result, setResult] = useState(null);
   const [pending, setPending] = useState(null);
   const [manual, setManual] = useState('');
+  const [folio, setFolio] = useState('');
+  const [foundPass, setFoundPass] = useState(null);
   const [log, setLog] = useState(null);
   const [logError, setLogError] = useState('');
   const [offset, setOffset] = useState(0);
@@ -99,17 +101,26 @@ export default function StaffAccess() {
       if (!active.current) return;
       setResult(value);
       setPending(null);
-      setManual('');
+      setManual(''); setFoundPass(null); setFolio('');
       setOffset(0);
       setRefresh(value => value + 1);
     } catch (error) {
       if (active.current) setMessage(`${error.message} La entrada no está confirmada en esta pantalla; reintenta la misma lectura para comprobar su resultado.`);
     } finally { scanLock.current = false; if (active.current) setBusy(false); }
   }
+  async function findFolio() {
+    if (scanLock.current || pending || !navigator.onLine) return;
+    stopCamera(); scanLock.current = true; setBusy(true); setMessage(''); setResult(null); setFoundPass(null);
+    try {
+      const value = await authenticatedRpc('lookup_pass_by_folio', {p_event_slug:event.slug,p_folio:folio.trim()});
+      if (active.current) setFoundPass(value);
+    } catch (error) { if (active.current) setMessage(error.message); }
+    finally { scanLock.current = false; if (active.current) setBusy(false); }
+  }
   async function startCamera() {
     if (!navigator.onLine) { setMessage('Necesitas conexión a internet para validar entradas.'); return; }
     if (!window.isSecureContext || !navigator.mediaDevices?.getUserMedia) { setMessage('La cámara requiere una conexión HTTPS y un navegador con acceso a cámara.'); return; }
-    setMessage(''); setResult(null); setStarting(true);
+    setMessage(''); setResult(null); setFoundPass(null); setStarting(true);
     const generation = ++cameraGeneration.current;
     try {
       const { BrowserQRCodeReader } = await import('@zxing/browser');
@@ -145,6 +156,17 @@ export default function StaffAccess() {
       <div className="camera-preview"><video ref={video} muted playsInline aria-label="Vista de la cámara" />{!camera && !starting && <span><Camera size={34} />Cámara detenida</span>}</div>
       <div className="scanner-actions"><button className="button button-primary" disabled={busy || starting || !online || !access.accessOpen || Boolean(pending)} onClick={camera ? stopCamera : startCamera}>{starting ? 'Abriendo cámara…' : camera ? 'Detener cámara' : 'Activar cámara'}</button>{starting && <button className="button button-outline" onClick={stopCamera}>Cancelar</button>}</div>
       <form className="manual-scan" onSubmit={e => { e.preventDefault(); submitScan(manual); }}><label htmlFor="manual-qr">Contenido del QR (lector externo)</label><input id="manual-qr" value={manual} onChange={e => setManual(e.target.value)} autoComplete="off" placeholder="Pega o escanea el contenido del QR" maxLength={160} required disabled={busy || Boolean(pending)} /><button className="button button-outline" disabled={busy || !online || !access.accessOpen || Boolean(pending)} type="submit">Validar QR</button></form>
+      <form className="manual-scan" onSubmit={e => {e.preventDefault(); findFolio();}}>
+        <label htmlFor="manual-folio">Entrada manual por folio</label>
+        <input id="manual-folio" value={folio} onChange={e => {setFolio(e.target.value); setFoundPass(null);}} placeholder="Folio de 8 caracteres o identificador completo" maxLength={36} autoComplete="off" required disabled={busy || Boolean(pending)} />
+        <button className="button button-outline" type="submit" disabled={busy || !online || !access.accessOpen || Boolean(pending)}>Buscar folio</button>
+      </form>
+      {foundPass && <div className="scan-result" role="status"><h3>Verifica el nombre antes de confirmar</h3><p>{foundPass.name}</p><p>Folio: {foundPass.passId.slice(0,8).toUpperCase()}</p>
+        {foundPass.status !== 'active' ? <p>Gafete cancelado. No permite el ingreso.</p> : <>
+          {foundPass.checkedInAt && <p>Este gafete ya ingresó: {formatTime(foundPass.checkedInAt)}</p>}
+          <button className="button button-primary" disabled={busy || !online || Boolean(pending) || !access.accessOpen} onClick={() => submitScan(`los-didis:v1:${event.slug}:${foundPass.qrToken}`)}>Confirmar ingreso por folio</button>
+        </>}
+      </div>}
       {busy && <p role="status">Validando con el servidor…</p>}
       {message && <p className="form-message" role="alert">{message}</p>}
       {pending && !busy && <button className="button button-primary" disabled={!online} onClick={() => submitScan('',pending)}>Reintentar esta lectura</button>}

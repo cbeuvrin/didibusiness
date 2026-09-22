@@ -2,7 +2,7 @@ import { mkdir,writeFile } from 'node:fs/promises';
 import QRCode from 'qrcode';
 import { createBadgePdf } from '../server/email/badge.mjs';
 import { registrationEmail } from '../server/email/template.mjs';
-const job={name:'Mariana López García',eventName:'Los DiDis 2026',isTest:true,startsAt:null,venue:null};
+const job={passId:'abcdef00-0000-4000-8000-000000000001',name:'Mariana López García',eventName:'Los DiDis 2026',isTest:true,startsAt:null,venue:null};
 // Deliberately not an event token: this preview can never grant entry.
 const qrSrc=await QRCode.toDataURL('LOS-DIDIS-PREVIEW-NOT-A-PASS',{width:464,margin:4});
 const {html}=registrationEmail(job,{qrSrc,siteUrl:'http://127.0.0.1:5173'});

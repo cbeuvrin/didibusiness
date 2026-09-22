@@ -29,6 +29,7 @@ export function createBadgePdf(job, qr) {
     let venueSize=11;
     while(venueSize>7 && doc.fontSize(venueSize).heightOfString(venue,{width:320})>36)venueSize--;
     doc.fontSize(venueSize).text(venue,50,536,{width:320,height:36,align:'center'});
+    if (job.passId) doc.fontSize(8).text(`Folio: ${job.passId.slice(0,8).toUpperCase()} · ID: ${job.passId}`,30,580,{width:360,align:'center'});
     doc.fontSize(10).text('Guarda este PDF y muestra el QR al ingresar.\nTu QR es personal. No lo compartas.',30,595,{width:360,align:'center',lineGap:4});
     doc.end();
   });

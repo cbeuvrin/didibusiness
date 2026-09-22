@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {registrationEmail} from '../../server/email/template.mjs';
 import {buildPayload,deliverOne} from '../../server/email/worker.mjs';
 import {authorized} from '../../api/cron/registration-emails.js';
-const job={id:'delivery-1',lease:'lease-1',name:'Mariana <script>alert(1)</script>',email:'test@example.invalid',slug:'los-didis-2026',qrToken:'a'.repeat(64),eventName:'Los DiDis 2026',isTest:true,startsAt:null,venue:null};
+const job={passId:'abcdef00-0000-4000-8000-000000000001',id:'delivery-1',lease:'lease-1',name:'Mariana <script>alert(1)</script>',email:'test@example.invalid',slug:'los-didis-2026',qrToken:'a'.repeat(64),eventName:'Los DiDis 2026',isTest:true,startsAt:null,venue:null};
 
 test('branded template escapes user text, uses real assets and does not invent event details',()=>{
  const mail=registrationEmail(job);
@@ -15,6 +15,8 @@ test('branded template escapes user text, uses real assets and does not invent e
  assert.ok(mail.html.includes('Sede por confirmar'));
  assert.ok(mail.html.includes('PASE DE PRUEBA'));
  assert.ok(mail.html.includes('cid:entry-qr'));
+ assert.ok(mail.html.includes('Folio: ABCDEF00'));
+ assert.ok(mail.text.includes(job.passId));
  assert.ok(mail.text.includes('https://losdidis2026.com/#acceso'));
 });
 test('payload has an embedded PNG QR without sending the private recovery credential',async()=>{

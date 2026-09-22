@@ -22,6 +22,7 @@ export function rpcStatement(name, body) {
     get_registration:['p_event_slug','p_email','p_access_code'],
     get_my_registration:['p_event_slug'],
     get_event_settings:['p_event_slug'],
+    lookup_pass_by_folio:['p_event_slug','p_folio'],
     get_staff_access:['p_event_slug'],
     record_check_in:['p_event_slug','p_qr_token','p_request_id'],
     get_attendance_log:['p_event_slug','p_offset'],

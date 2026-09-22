@@ -171,3 +171,20 @@ test('the camera decoder reads the badge QR and stops the video tracks after val
   await expect(page.locator('.scan-result')).toContainText('Entrada registrada',{timeout:15000});
   expect(await page.evaluate(()=>window.testCameraStream.getTracks().every(track=>track.readyState==='ended'))).toBe(true);
 });
+
+test('staff can find a folio, confirm the name and preserve duplicate protection',async({page,backend})=>{
+  await fillRegistration(page); await submitRegistration(page);
+  const pass=backend.lastPass;
+  await page.goto(await backend.magicLink('folio-staff@example.com',{staff:true}));
+  await page.getByLabel('Entrada manual por folio').fill(pass.passId.slice(0,8).toUpperCase());
+  await page.getByRole('button',{name:'Buscar folio',exact:true}).click();
+  await expect(page.getByRole('heading',{name:'Verifica el nombre antes de confirmar'})).toBeVisible();
+  expect(backend.requests.filter(r=>r.name==='record_check_in')).toHaveLength(0);
+  await page.getByRole('button',{name:'Confirmar ingreso por folio'}).click();
+  await expect(page.locator('.scan-result-accepted')).toContainText('Mariana');
+  await page.getByLabel('Entrada manual por folio').fill(pass.passId);
+  await page.getByRole('button',{name:'Buscar folio',exact:true}).click();
+  await page.getByRole('button',{name:'Confirmar ingreso por folio'}).click();
+  await expect(page.locator('.scan-result-duplicate')).toContainText('Este gafete ya ingresó');
+  await expect(page.locator('.attendance-totals div').nth(1)).toContainText('1');
+});
