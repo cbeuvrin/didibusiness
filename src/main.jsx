@@ -3,7 +3,7 @@ import { createRoot } from 'react-dom/client';
 import { ArrowRight, ArrowLeft, CalendarBlank, MapPin, ArrowUpRight, DownloadSimple, Check, EnvelopeSimple, User, SignOut } from '@phosphor-icons/react';
 import QRCode from 'qrcode';
 import '@fontsource-variable/manrope';
-import { event, eventOptions, eventLabel, passEvent, registrationForm } from './config';
+import { event, eventOptions, eventLabel, mapsUrl, passEvent, registrationForm } from './config';
 import { normalizeEmail, registerAttendee, getRegistration, getMyRegistration, getEventSettings, savedAccess, clearAccess } from './services/registrations';
 import { supabase, isEmailCallback } from './services/supabase';
 import EmailSignIn from './components/EmailSignIn';
@@ -26,7 +26,7 @@ function Brand({ compact = false }) {
 function EventDetails({ compact = false, details = event }) {
   return <div className={`event-details ${compact ? 'compact' : ''}`}>
     <div><CalendarBlank size={21} weight="regular" /><span>{details.date}<small>{details.time}</small></span></div>
-    <div><MapPin size={21} weight="regular" /><span>{details.venue}<small>Nos vemos en persona</small></span></div>
+    <div><MapPin size={21} weight="regular" /><span>{details.venue}<small>{details.address || 'Nos vemos en persona'}</small></span></div>
   </div>;
 }
 function Landing() {
@@ -47,7 +47,7 @@ function Information() {
       <div><p className="section-label">Acerca del encuentro</p><h2 id="about-title">Las grandes ideas<br />empiezan con una<br /><span>conversación.</span></h2></div>
       <div className="information-copy"><p>Conecta con nuevas perspectivas y forma parte de un encuentro pensado para compartir, aprender y construir lo que sigue.</p><p>Completa tu registro y guarda tu código QR. Será tu pase de acceso el día del evento.</p></div>
     </div>
-    <div className="event-cities">{eventOptions.map(item => <article key={item.slug}><p className="section-label">{eventLabel(item)}</p><h3>{item.city}</h3><p>Horario y recinto por confirmar</p><a href={`#registro?evento=${item.slug}`} aria-label={`Elegir evento en ${item.city}`}>Elegir evento ↗</a></article>)}</div>
+    <div className="event-cities">{eventOptions.map(item => <article key={item.slug}><p className="section-label">{eventLabel(item)}</p><h3>{item.city}</h3><p className="city-venue">{item.venue}</p><address>{item.address}<br /><a className="map-link" href={mapsUrl(item.address)} target="_blank" rel="noopener noreferrer">Ver en el mapa</a></address><p>Horario por confirmar</p><a href={`#registro?evento=${item.slug}`} aria-label={`Elegir evento en ${item.city}`}>Elegir evento ↗</a></article>)}</div>
   </section>;
 }
 function Field({ label, name, type = 'text', autoComplete, placeholder, error, onChange, value, icon: Icon = User, required = true, maxLength }) {

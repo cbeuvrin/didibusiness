@@ -28,7 +28,7 @@ test('register with optional fields, validate email, download a badge and reload
   await expect(page.getByText('Tu código privado de consulta')).toHaveCount(0);
   const badge=page.getByRole('region',{name:'Tu pase de acceso'});
   await expect(badge).toContainText('8 de octubre de 2026');
-  await expect(badge).toContainText('Sede por confirmar');
+  await expect(badge).toContainText('Salón Benavento');
   await page.screenshot({path:'test-results/desktop-pass.png',fullPage:true});
   const downloadEvent=page.waitForEvent('download');
   await page.getByRole('button',{name:'Descargar mi gafete'}).click();

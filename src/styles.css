@@ -292,5 +292,8 @@ main:focus { outline: none; }
 .event-cities article { border-top: 1px solid #deccbd; padding-top: 24px; }
 .event-cities h3 { font-size: 27px; letter-spacing: -.04em; }
 .event-cities article > p:not(.section-label) { font-size: 12px; color: var(--muted); line-height: 1.8; margin-top: 12px; }
+.event-cities article > p.city-venue { font-size: 15px; font-weight: 700; color: inherit; margin-top: 10px; }
+.event-cities address { font-style: normal; font-size: 12px; color: var(--muted); line-height: 1.7; margin-top: 8px; }
+.event-cities address .map-link { margin-top: 6px; font-weight: 600; }
 .event-cities a { display: inline-block; margin-top: 20px; font-size: 12px; font-weight: 700; text-decoration: underline; text-underline-offset: 4px; }
 @media (max-width: 650px) { .event-cities { grid-template-columns: 1fr; gap: 30px; } }
