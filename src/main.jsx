@@ -20,7 +20,7 @@ function navigate(path) { window.location.hash = path === 'inicio' ? '' : path; 
 
 function Brand({ compact = false }) {
   return <a className={`brand ${compact ? 'brand-compact' : ''}`} href="#" aria-label="Los DiDis, inicio">
-    <img src="/brand/los-didis-logo.png" width="1746" height="422" alt="Los DiDis 2026" />
+    <img src="/brand/los-didis-logo-white.png" width="1746" height="422" alt="Los DiDis 2026" />
   </a>;
 }
 function EventDetails({ compact = false }) {
@@ -33,7 +33,7 @@ function Landing() {
   return <>
     <div className="hero-content enter">
       <p className="eyebrow">El próximo encuentro empieza contigo</p>
-      <h1 className="hero-title"><span className="sr-only">Los DiDis 2026</span><img src="/brand/los-didis-logo.png" width="1746" height="422" alt="" fetchPriority="high" /></h1>
+      <h1 className="hero-title"><span className="sr-only">Los DiDis 2026</span><img src="/brand/los-didis-logo-white.png" width="1746" height="422" alt="" fetchPriority="high" /></h1>
       <p className="hero-description">{event.description}</p>
       <div className="hero-actions"><a className="button button-outline" href="#acceso">Ya estoy registrado</a><a className="button button-primary" href="#registro">Registrarme<ArrowUpRight size={20} /></a></div>
       <p className="hero-date">28 de octubre <span>/</span> 8:00 p. m.</p>
@@ -123,7 +123,7 @@ function Confirmation({ attendee }) {
       ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, 1000, 1400);
       const background = new Image(); background.src = '/brand/los-didis-background.jpg'; await background.decode();
       ctx.drawImage(background, 0, 760, 2000, 480, 0, 0, 1000, 240);
-      const logo = new Image(); logo.src = '/brand/los-didis-logo.png'; await logo.decode();
+      const logo = new Image(); logo.src = '/brand/los-didis-logo-white.png'; await logo.decode();
       ctx.drawImage(logo, 200, 28, 600, 145);
       ctx.fillStyle = '#24160f'; ctx.textAlign = 'center';
       ctx.font = '500 26px Manrope Variable'; ctx.fillText(attendee.isTest ? 'GAFETE DE PRUEBA' : 'GAFETE VIRTUAL', 500, 212);

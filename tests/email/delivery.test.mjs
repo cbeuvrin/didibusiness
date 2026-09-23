@@ -8,7 +8,7 @@ const job={passId:'abcdef00-0000-4000-8000-000000000001',id:'delivery-1',lease:'
 test('branded template escapes user text, uses real assets and does not invent event details',()=>{
  const mail=registrationEmail(job);
  assert.ok(mail.html.includes('los-didis-background.jpg'));
- assert.ok(mail.html.includes('los-didis-logo.png'));
+ assert.ok(mail.html.includes('los-didis-logo-white.png'));
  assert.ok(mail.html.includes('&lt;script&gt;'));
  assert.ok(!mail.html.includes('<script>'));
  assert.ok(mail.html.includes('Fecha y hora por confirmar'));

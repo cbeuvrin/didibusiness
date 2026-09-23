@@ -281,3 +281,5 @@ main:focus { outline: none; }
 .footer { flex-wrap: wrap; }
 .legal-links { display: flex; flex-wrap: wrap; gap: 14px; }
 .legal-links a { text-decoration: underline; text-underline-offset: 3px; }
+
+.ticket-heading .brand { background: #f4770b; padding: 10px; border-radius: 4px; }

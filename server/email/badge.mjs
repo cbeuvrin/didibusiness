@@ -11,7 +11,7 @@ export function createBadgePdf(job, qr) {
     doc.on('error',reject);
     doc.on('end',()=>resolve(Buffer.concat(chunks)));
     doc.image(asset('los-didis-background.jpg'),0,0,{width:420,height:650});
-    doc.image(asset('los-didis-logo.png'),30,28,{width:145});
+    doc.image(asset('los-didis-logo-white.png'),30,28,{width:145});
     doc.fillColor('#24160f').fontSize(25).text('Tu gafete de acceso',30,97,{width:360});
     doc.roundedRect(26,145,368,433,12).fill('#fffcf8');
     doc.fillColor('#24160f').fontSize(9);
