@@ -1,15 +1,15 @@
+import { emailEventDetails } from './event-details.mjs';
 const escape = value => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
 export function registrationEmail(job, { siteUrl = 'https://losdidis2026.com', qrSrc = 'cid:entry-qr' } = {}) {
-  const date = job.startsAt ? new Intl.DateTimeFormat('es-MX', {dateStyle:'long',timeStyle:'short',timeZone:'America/Mexico_City'}).format(new Date(job.startsAt)) : 'Fecha y hora por confirmar';
-  const venue = job.venue || 'Sede por confirmar';
+  const {date, venue} = emailEventDetails(job);
   const site = new URL(siteUrl).origin;
   const logo = `${site}/brand/los-didis-logo-white.png`;
   const background = `${site}/brand/los-didis-background.jpg`;
   const test = job.isTest ? 'PASE DE PRUEBA · SIN VALIDEZ DE ENTRADA' : 'TU ACCESO AL EVENTO';
   const subject = `${job.isTest ? '[PRUEBA] ' : ''}Tu gafete para ${job.eventName}`;
   const folio = job.passId ? `Folio: ${job.passId.slice(0,8).toUpperCase()} · ID: ${job.passId}` : '';
-  const text = `Hola, ${job.name}.\nTu registro para ${job.eventName} está confirmado.\n${test}\n${folio}\n${date} (Ciudad de México)\n${venue}\nPresenta el QR incluido en este correo al personal de acceso. Descarga también el gafete PDF adjunto. Guarda la imagen o el PDF antes de llegar; no necesitas internet para mostrarla.\nConsulta y descarga tu gafete: ${site}/#acceso\nTu QR es personal. No lo compartas.\nEste buzón no recibe respuestas.`;
+  const text = `Hola, ${job.name}.\nTu registro para ${job.eventName} está confirmado.\n${test}\n${folio}\n${date}${job.startsAt ? ' (Horario de Ciudad de México)' : ''}\n${venue}\nPresenta el QR incluido en este correo al personal de acceso. Descarga también el gafete PDF adjunto. Guarda la imagen o el PDF antes de llegar; no necesitas internet para mostrarla.\nConsulta y descarga tu gafete: ${site}/#acceso\nTu QR es personal. No lo compartas.\nEste buzón no recibe respuestas.`;
   const html = `<!doctype html><html lang="es"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${escape(subject)}</title></head>
 <body style="margin:0;padding:0;background:#fff8ef;color:#24160f;font-family:Arial,Helvetica,sans-serif">
 <div style="display:none;max-height:0;overflow:hidden;mso-hide:all">Tu registro está confirmado. Guarda tu QR para el día del evento.</div>

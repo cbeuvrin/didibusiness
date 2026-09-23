@@ -13,7 +13,7 @@ export const test = base.extend({
       requests: [], sentEmails: [], lastPass: null,
       dropNextRegistrationResponse:false,dropNextScanResponse:false,failRecovery:false,missingMigration:false,smtpError:false,
       async setPrivacy(ready) { await serial(() => db.query('update public.events set privacy_notice_url=$1',[ready ? 'https://example.com/privacidad' : null])); },
-      async magicLink(email, {staff=false}={}) {
+      async magicLink(email, {staff=false,staffEvents=['los-didis-2026-guadalajara']}={}) {
         email=email.toLowerCase();
         let user=users.get(email);
         if(!user){
@@ -21,7 +21,7 @@ export const test = base.extend({
           await serial(() => db.query('insert into auth.users(id,email,email_confirmed_at) values($1,$2,$3)',[user.id,email,user.email_confirmed_at]));
           users.set(email,user);
         }
-        if(staff) await serial(() => db.query("insert into public.event_staff(event_id,user_id,role) select id,$1,'scanner' from public.events where slug='los-didis-2026' on conflict do nothing",[user.id]));
+        if(staff) for (const slug of staffEvents) await serial(() => db.query("insert into public.event_staff(event_id,user_id,role) select id,$1,'scanner' from public.events where slug=$2 on conflict do nothing",[user.id,slug]));
         const exp=Math.floor(Date.now()/1000)+3600;
         const token=Buffer.from(JSON.stringify({alg:'HS256',typ:'JWT'})).toString('base64url')+'.'+Buffer.from(JSON.stringify({sub:user.id,email,role:'authenticated',aud:'authenticated',exp})).toString('base64url')+'.testsignature';
         tokens.set(token,user);
@@ -46,7 +46,7 @@ export const test = base.extend({
           const name=url.pathname.split('/').at(-1); const body=request.postDataJSON();
           backend.requests.push({name,body});
           if(backend.missingMigration) return route.fulfill({status:404,json:{code:'PGRST202',message:'Function not found'}});
-          if(['get_registration','get_my_registration'].includes(name) && backend.failRecovery) return route.abort('failed');
+          if(['get_registration','get_my_registration','get_my_registrations'].includes(name) && backend.failRecovery) return route.abort('failed');
           try {
             const data=await serial(async()=>{
               await db.exec('begin');

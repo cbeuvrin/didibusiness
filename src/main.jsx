@@ -3,7 +3,7 @@ import { createRoot } from 'react-dom/client';
 import { ArrowRight, ArrowLeft, CalendarBlank, MapPin, ArrowUpRight, DownloadSimple, Check, EnvelopeSimple, User, SignOut } from '@phosphor-icons/react';
 import QRCode from 'qrcode';
 import '@fontsource-variable/manrope';
-import { event, registrationForm } from './config';
+import { event, eventOptions, eventLabel, passEvent, registrationForm } from './config';
 import { normalizeEmail, registerAttendee, getRegistration, getMyRegistration, getEventSettings, savedAccess, clearAccess } from './services/registrations';
 import { supabase, isEmailCallback } from './services/supabase';
 import EmailSignIn from './components/EmailSignIn';
@@ -11,7 +11,7 @@ import StaffAccess from './components/StaffAccess';
 import './styles.css';
 
 function getRoute() {
-  const path = window.location.hash.slice(1);
+  const path = window.location.hash.slice(1).split('?')[0];
   if (['registro', 'acceso', 'confirmacion', 'personal'].includes(path)) return path;
   const area = new URLSearchParams(window.location.search).get('area');
   return area === 'personal' ? 'personal' : area === 'pase' ? 'confirmacion' : 'inicio';
@@ -23,10 +23,10 @@ function Brand({ compact = false }) {
     <img src="/brand/los-didis-logo-white.png" width="1746" height="422" alt="Los DiDis 2026" />
   </a>;
 }
-function EventDetails({ compact = false }) {
+function EventDetails({ compact = false, details = event }) {
   return <div className={`event-details ${compact ? 'compact' : ''}`}>
-    <div><CalendarBlank size={21} weight="regular" /><span>{event.date}<small>{event.time}</small></span></div>
-    <div><MapPin size={21} weight="regular" /><span>{event.venue}<small>Nos vemos en persona</small></span></div>
+    <div><CalendarBlank size={21} weight="regular" /><span>{details.date}<small>{details.time}</small></span></div>
+    <div><MapPin size={21} weight="regular" /><span>{details.venue}<small>Nos vemos en persona</small></span></div>
   </div>;
 }
 function Landing() {
@@ -36,7 +36,7 @@ function Landing() {
       <h1 className="hero-title"><span className="sr-only">Los DiDis 2026</span><img src="/brand/los-didis-logo-white.png" width="1746" height="422" alt="" fetchPriority="high" /></h1>
       <p className="hero-description">{event.description}</p>
       <div className="hero-actions"><a className="button button-outline" href="#acceso">Ya estoy registrado</a><a className="button button-primary" href="#registro">Registrarme<ArrowUpRight size={20} /></a></div>
-      <p className="hero-date">28 de octubre <span>/</span> 8:00 p. m.</p>
+      <p className="hero-date">Guadalajara <span>/</span> Monterrey <span>/</span> CDMX</p>
     </div>
     <div className="hero-bottom"><span>Ideas que nos acercan.</span><span>Conexiones que nos impulsan.</span></div>
   </>;
@@ -45,30 +45,33 @@ function Information() {
   return <section className="information" id="evento" aria-labelledby="about-title">
     <div className="information-inner">
       <div><p className="section-label">Acerca del encuentro</p><h2 id="about-title">Las grandes ideas<br />empiezan con una<br /><span>conversación.</span></h2></div>
-      <div className="information-copy"><p>Conecta con nuevas perspectivas y forma parte de un encuentro pensado para compartir, aprender y construir lo que sigue.</p><p>Completa tu registro y guarda tu código QR. Será tu pase de acceso el día del evento.</p><EventDetails /></div>
+      <div className="information-copy"><p>Conecta con nuevas perspectivas y forma parte de un encuentro pensado para compartir, aprender y construir lo que sigue.</p><p>Completa tu registro y guarda tu código QR. Será tu pase de acceso el día del evento.</p></div>
     </div>
+    <div className="event-cities">{eventOptions.map(item => <article key={item.slug}><p className="section-label">{eventLabel(item)}</p><h3>{item.city}</h3><p>Horario y recinto por confirmar</p><a href={`#registro?evento=${item.slug}`} aria-label={`Elegir evento en ${item.city}`}>Elegir evento ↗</a></article>)}</div>
   </section>;
 }
 function Field({ label, name, type = 'text', autoComplete, placeholder, error, onChange, value, icon: Icon = User, required = true, maxLength }) {
   return <div className="field"><label htmlFor={name}>{label}{!required && <span className="optional"> (opcional)</span>}</label><div className={`input-wrap ${error ? 'invalid' : ''}`}><Icon size={19} aria-hidden="true" /><input id={name} name={name} type={type} autoComplete={autoComplete} placeholder={placeholder} required={required} maxLength={maxLength ?? (type === 'email' ? 254 : 80)} value={value} onChange={onChange} aria-invalid={Boolean(error)} aria-describedby={error ? `${name}-error` : undefined} /></div>{error && <span className="field-error" id={`${name}-error`}>{error}</span>}</div>;
 }
-function FormAside() {
-  return <aside className="form-aside"><span className="aside-mark" aria-hidden="true" /><p className="section-label">Los DiDis</p><h2>Las ideas conectan.<br />Las personas<br /><span>las hacen posibles.</span></h2><p>Nos alegra que seas parte<br />de este encuentro.</p><EventDetails compact /></aside>;
+function FormAside({ details = event }) {
+  return <aside className="form-aside"><span className="aside-mark" aria-hidden="true" /><p className="section-label">Los DiDis</p><h2>Las ideas conectan.<br />Las personas<br /><span>las hacen posibles.</span></h2><p>Nos alegra que seas parte<br />de este encuentro.</p><EventDetails compact details={details} /></aside>;
 }
 function RegistrationForm({ onAuthenticated }) {
-  const [values, setValues] = useState({ firstName: '', lastName: '', secondLastName: '', email: '', confirmEmail: '', phone: '', state: '', extra1: '', extra2: '', privacyAccepted: false });
+  const [values, setValues] = useState({ eventSlug: eventOptions.find(item => item.slug === new URLSearchParams(window.location.hash.split('?')[1]).get('evento'))?.slug || '', firstName: '', lastName: '', secondLastName: '', email: '', confirmEmail: '', phone: '', state: '', extra1: '', extra2: '', privacyAccepted: false });
   const [settings, setSettings] = useState(null);
   const [settingsError, setSettingsError] = useState('');
   useEffect(() => {
     let active = true;
-    getEventSettings().then(value => { if (active) setSettings(value); }).catch(error => { if (active) setSettingsError(error.message); });
+    setSettings(null); setSettingsError('');
+    if (!values.eventSlug) return;
+    getEventSettings(values.eventSlug).then(value => { if (active) setSettings(value); }).catch(error => { if (active) setSettingsError(error.message); });
     return () => { active = false; };
-  }, []);
+  }, [values.eventSlug]);
   const privacyReady = Boolean(settings?.privacyUrl && settings?.privacyVersion);
   const [errors, setErrors] = useState({});
   const [message, setMessage] = useState('');
   const [busy, setBusy] = useState(false);
-  const change = e => { setValues(v => ({ ...v, [e.target.name]: e.target.type === 'checkbox' ? e.target.checked : e.target.value })); setErrors(v => ({ ...v, [e.target.name]: '' })); setMessage(''); };
+  const change = e => { setValues(v => ({ ...v, [e.target.name]: e.target.type === 'checkbox' ? e.target.checked : e.target.value })); if (e.target.name === 'eventSlug') {setSettings(null); setValues(v => ({...v,privacyAccepted:false}));} setErrors(v => ({ ...v, [e.target.name]: '' })); setMessage(''); };
   async function submit(e) {
     e.preventDefault();
     const nextErrors = {};
@@ -87,6 +90,7 @@ function RegistrationForm({ onAuthenticated }) {
     finally { setBusy(false); }
   }
   return <div className="form-layout enter"><section className="form-panel" aria-labelledby="register-title"><p className="section-label">Sé parte del encuentro</p><h1 id="register-title">Tu lugar empieza aquí<span>.</span></h1><p className="form-intro">Completa tus datos para obtener tu pase de acceso.</p><p className="switch-form">¿Ya estás registrado? <a href="#acceso">Iniciar sesión<ArrowUpRight size={14} /></a></p><form onSubmit={submit}>
+    <div className="field"><label htmlFor="eventSlug">Elige el evento</label><select id="eventSlug" name="eventSlug" value={values.eventSlug} onChange={change} required disabled={busy}><option value="">Selecciona una ciudad y fecha</option>{eventOptions.map(item => <option key={item.slug} value={item.slug}>{eventLabel(item)}</option>)}</select></div>
     <Field label="Nombre(s)" name="firstName" autoComplete="given-name" placeholder="Tu nombre" value={values.firstName} onChange={change} error={errors.firstName} />
     <div className="field-row"><Field label="Apellido paterno" name="lastName" required={false} autoComplete="family-name" placeholder="Tu primer apellido" value={values.lastName} onChange={change} error={errors.lastName} /><Field label="Apellido materno" name="secondLastName" autoComplete="additional-name" placeholder="Tu segundo apellido" value={values.secondLastName} onChange={change} required={false} /></div>
     <Field label="Correo electrónico" name="email" type="email" autoComplete="email" placeholder="nombre@ejemplo.com" value={values.email} onChange={change} icon={EnvelopeSimple} />
@@ -96,23 +100,27 @@ function RegistrationForm({ onAuthenticated }) {
     <Field label={settings?.extra1Label || 'Información adicional 1'} name="extra1" placeholder="Escribe tu respuesta" maxLength={500} value={values.extra1} onChange={change} required={false} />
     <Field label={settings?.extra2Label || 'Información adicional 2'} name="extra2" placeholder="Escribe tu respuesta" maxLength={500} value={values.extra2} onChange={change} required={false} />
     </>}
-    <div className="privacy-field"><label htmlFor="privacyAccepted"><input id="privacyAccepted" name="privacyAccepted" type="checkbox" checked={values.privacyAccepted} onChange={change} required disabled={!privacyReady} aria-describedby="privacy-note" aria-invalid={Boolean(errors.privacyAccepted)} /><span>He leído y acepto {privacyReady ? <a href={settings.privacyUrl} target="_blank" rel="noopener noreferrer">el aviso de privacidad</a> : <a href="/privacidad.html" target="_blank" rel="noopener noreferrer">el aviso de privacidad (borrador)</a>}.</span></label><p id="privacy-note">{settingsError || (!settings ? 'Consultando disponibilidad del registro…' : !privacyReady ? 'Aviso de privacidad pendiente de publicación. El registro se habilitará cuando esté disponible.' : 'Nombre, correo y confirmación de correo son obligatorios.')}</p>{errors.privacyAccepted && <p className="field-error">{errors.privacyAccepted}</p>}</div>
+    <div className="privacy-field"><label htmlFor="privacyAccepted"><input id="privacyAccepted" name="privacyAccepted" type="checkbox" checked={values.privacyAccepted} onChange={change} required disabled={!privacyReady} aria-describedby="privacy-note" aria-invalid={Boolean(errors.privacyAccepted)} /><span>He leído y acepto {privacyReady ? <a href={settings.privacyUrl} target="_blank" rel="noopener noreferrer">el aviso de privacidad</a> : <a href="/privacidad.html" target="_blank" rel="noopener noreferrer">el aviso de privacidad (borrador)</a>}.</span></label><p id="privacy-note">{settingsError || (!values.eventSlug ? 'Elige tu evento para continuar.' : !settings ? 'Consultando disponibilidad del registro…' : !privacyReady ? 'Aviso de privacidad pendiente de publicación. El registro se habilitará cuando esté disponible.' : 'Nombre, correo y confirmación de correo son obligatorios.')}</p>{errors.privacyAccepted && <p className="field-error">{errors.privacyAccepted}</p>}</div>
     <p className="demo-notice">Consulta los <a href="/terminos.html" target="_blank" rel="noopener noreferrer" style={{textDecoration: 'underline'}}>términos y condiciones provisionales</a>.</p>
     {message && <p role="alert" className="form-message">{message}</p>}
     <button className="button button-primary form-submit" type="submit" disabled={busy || !privacyReady || !settings?.registrationOpen}>{busy ? 'Creando tu pase…' : 'Registrarme'}<ArrowRight size={19} /></button>
     <p className="demo-notice">Al terminar, podrás descargar tu gafete virtual.</p>
-  </form></section><FormAside /></div>;
+  </form></section><FormAside details={passEvent({eventSlug:values.eventSlug})} /></div>;
 }
 function LoginForm() {
   return <div className="form-layout login-layout enter"><EmailSignIn /><FormAside /></div>;
 }
-function Confirmation({ attendee }) {
+function Confirmation({ attendee: initialAttendee }) {
+  const [selectedPass, setSelectedPass] = useState(initialAttendee.passId);
+  const attendee = initialAttendee.otherPasses?.find(pass=>pass.passId===selectedPass) || initialAttendee;
+  const details=passEvent(attendee);
   const [qr, setQr] = useState('');
   const [error, setError] = useState('');
   const [downloaded, setDownloaded] = useState(false);
   useEffect(() => {
     let active = true;
-    QRCode.toDataURL(`los-didis:v1:${event.slug}:${attendee.qrToken}`, { width: 420, margin: 4, color: { dark: '#24160f', light: '#ffffff' }, errorCorrectionLevel: 'M' }).then(url => { if (active) setQr(url); }).catch(() => { if (active) setError('No pudimos generar el QR. Recarga la página para intentarlo de nuevo.'); });
+    setQr(''); setError('');
+    QRCode.toDataURL(`los-didis:v1:${details.slug}:${attendee.qrToken}`, { width: 420, margin: 4, color: { dark: '#24160f', light: '#ffffff' }, errorCorrectionLevel: 'M' }).then(url => { if (active) setQr(url); }).catch(() => { if (active) setError('No pudimos generar el QR. Recarga la página para intentarlo de nuevo.'); });
     return () => { active = false; };
   }, [attendee.passId, attendee.qrToken]);
   async function download() {
@@ -130,17 +138,17 @@ function Confirmation({ attendee }) {
       const img = new Image(); img.src = qr; await img.decode(); ctx.drawImage(img, 225, 230, 550, 550);
       ctx.font = '700 38px Manrope Variable'; ctx.fillText(attendee.firstName, 500, 850, 860);
       ctx.font = '500 30px Manrope Variable'; ctx.fillText(`${attendee.lastName} ${attendee.secondLastName}`, 500, 900, 860);
-      ctx.font = '500 25px Manrope Variable'; ctx.fillText(event.date, 500, 1010); ctx.fillText(event.venue, 500, 1060);
+      ctx.font = '500 25px Manrope Variable'; ctx.fillText(details.date, 500, 1010); ctx.fillText(details.venue, 500, 1060);
       ctx.font = '400 20px Manrope Variable'; ctx.fillText(`Folio: ${attendee.passId}`, 500, 1140);
-      ctx.fillText(event.time, 500, 1100);
+      ctx.fillText(details.time, 500, 1100);
       ctx.fillText('Conserva este gafete para el día del evento.', 500, 1240);
       ctx.font = '400 20px Manrope Variable'; ctx.fillText(attendee.isTest ? 'Pase de prueba, sin validez para acceso a un evento.' : 'Presenta este QR al personal de acceso.', 500, 1340);
       const link = document.createElement('a'); link.download = `pase-los-didis-${attendee.passId.slice(0, 8)}.png`; link.href = canvas.toDataURL('image/png'); document.body.appendChild(link); link.click(); link.remove(); setDownloaded(true);
     } catch { setError('No pudimos descargar tu pase. Inténtalo de nuevo.'); }
   }
-  return <div className="confirmation enter"><section><div className="success-icon"><Check size={24} weight="bold" /></div><p className="section-label">Registro guardado</p><h1>¡Nos vemos ahí,<br /><span>{attendee.firstName}!</span></h1><p className="confirmation-intro">Tu registro está guardado. Descarga tu gafete y presenta su QR al personal de acceso el día del evento.</p><EventDetails />{attendee.isTest && <p className="demo-notice">Este es un pase de prueba, sin validez para acceso a un evento.</p>}
+  return <div className="confirmation enter"><section>{initialAttendee.otherPasses?.length > 1 && <div className="field"><label htmlFor="my-event">Consultar otro evento</label><select id="my-event" value={selectedPass} onChange={e=>{setSelectedPass(e.target.value);setDownloaded(false);}}>{initialAttendee.otherPasses.map(pass=><option key={pass.passId} value={pass.passId}>{pass.eventName}</option>)}</select></div>}<div className="success-icon"><Check size={24} weight="bold" /></div><p className="section-label">Registro guardado</p><h1>¡Nos vemos ahí,<br /><span>{attendee.firstName}!</span></h1><p className="confirmation-intro">Tu registro está guardado. Descarga tu gafete y presenta su QR al personal de acceso el día del evento.</p><EventDetails details={details} />{attendee.isTest && <p className="demo-notice">Este es un pase de prueba, sin validez para acceso a un evento.</p>}
 
-    </section><section className="ticket" aria-label="Tu pase de acceso"><div className="ticket-heading"><Brand compact /><span>GAFETE VIRTUAL</span></div><div className="qr-wrap">{qr ? <img src={qr} width="210" height="210" alt="Código QR de tu pase personal" /> : <p role="status">Generando tu QR…</p>}</div><h2>{[attendee.firstName, attendee.lastName, attendee.secondLastName].filter(Boolean).join(' ')}</h2><div className="badge-event"><p>{event.date} · {event.time}</p><p>{event.venue}</p></div><div className="ticket-divider" /><div className="ticket-folio"><span>FOLIO DE REGISTRO</span><strong>{attendee.passId.slice(0, 8).toUpperCase()}</strong></div><button className="button button-primary" disabled={!qr} onClick={download}>Descargar mi gafete<DownloadSimple size={19} /></button>{downloaded && <p role="status" className="download-status">Tu gafete se ha descargado.</p>}{error && <p role="alert" className="form-message">{error}</p>}</section></div>;
+    </section><section className="ticket" aria-label="Tu pase de acceso"><div className="ticket-heading"><Brand compact /><span>GAFETE VIRTUAL</span></div><div className="qr-wrap">{qr ? <img src={qr} width="210" height="210" alt="Código QR de tu pase personal" /> : <p role="status">Generando tu QR…</p>}</div><h2>{[attendee.firstName, attendee.lastName, attendee.secondLastName].filter(Boolean).join(' ')}</h2><div className="badge-event"><p>{details.date} · {details.time}</p><p>{details.venue}</p></div><div className="ticket-divider" /><div className="ticket-folio"><span>FOLIO DE REGISTRO</span><strong>{attendee.passId.slice(0, 8).toUpperCase()}</strong></div><button className="button button-primary" disabled={!qr} onClick={download}>Descargar mi gafete<DownloadSimple size={19} /></button>{downloaded && <p role="status" className="download-status">Tu gafete se ha descargado.</p>}{error && <p role="alert" className="form-message">{error}</p>}</section></div>;
 }
 function App() {
   const [route, setRoute] = useState(getRoute);

@@ -2,6 +2,7 @@ import { test, expect } from './backend';
 
 async function fillRegistration(page, email='mariana@example.com') {
   await page.goto('/#registro');
+  await page.getByLabel('Elige el evento').selectOption('los-didis-2026-guadalajara');
   await page.getByLabel('Nombre(s)',{exact:true}).fill('Mariana');
   await page.getByLabel('Correo electrónico',{exact:true}).fill(email);
   await page.getByLabel('Confirmar correo electrónico').fill(email);
@@ -26,7 +27,7 @@ test('register with optional fields, validate email, download a badge and reload
   await submitRegistration(page);
   await expect(page.getByText('Tu código privado de consulta')).toHaveCount(0);
   const badge=page.getByRole('region',{name:'Tu pase de acceso'});
-  await expect(badge).toContainText('28 de octubre de 2026');
+  await expect(badge).toContainText('8 de octubre de 2026');
   await expect(badge).toContainText('Sede por confirmar');
   await page.screenshot({path:'test-results/desktop-pass.png',fullPage:true});
   const downloadEvent=page.waitForEvent('download');
@@ -69,6 +70,7 @@ test('email delivery errors do not claim that a link was sent',async({page,backe
 test('missing privacy notice leaves fields reviewable but does not fabricate consent or accept a registration',async({page,backend})=>{
   await backend.setPrivacy(false);
   await page.goto('/#registro');
+  await page.getByLabel('Elige el evento').selectOption('los-didis-2026-guadalajara');
   await expect(page.getByText('Aviso de privacidad pendiente de publicación.',{exact:false})).toBeVisible();
   await expect(page.getByRole('checkbox')).toBeDisabled();
   await expect(page.getByRole('button',{name:'Registrarme',exact:true})).toBeDisabled();
@@ -107,7 +109,7 @@ test('mobile form, badge and email login fit the viewport',async({page})=>{
 
 test('authorized staff validate a QR, retain the first entry time and retry a lost response safely',async({page,backend})=>{
   await fillRegistration(page); await submitRegistration(page);
-  const qr=`los-didis:v1:los-didis-2026:${backend.lastPass.qrToken}`;
+  const qr=`los-didis:v1:${backend.lastPass.eventSlug}:${backend.lastPass.qrToken}`;
   await page.goto(await backend.magicLink('staff@example.com',{staff:true}));
   await expect(page.getByRole('heading',{name:'Control de acceso',exact:true})).toBeVisible();
   await page.getByLabel('Contenido del QR (lector externo)').fill(qr);
@@ -187,4 +189,53 @@ test('staff can find a folio, confirm the name and preserve duplicate protection
   await page.getByRole('button',{name:'Confirmar ingreso por folio'}).click();
   await expect(page.locator('.scan-result-duplicate')).toContainText('Este gafete ya ingresó');
   await expect(page.locator('.attendance-totals div').nth(1)).toContainText('1');
+});
+
+test('city links select the event and email login lets an attendee switch between their passes',async({page,backend})=>{
+  await page.goto('/');
+  await expect(page.locator('.event-cities article')).toHaveCount(3);
+  await page.getByRole('link',{name:'Elegir evento en Monterrey',exact:true}).click();
+  await expect(page.getByLabel('Elige el evento')).toHaveValue('los-didis-2026-monterrey');
+  await page.getByLabel('Nombre(s)',{exact:true}).fill('Mariana');
+  await page.getByLabel('Correo electrónico',{exact:true}).fill('mariana@example.com');
+  await page.getByLabel('Confirmar correo electrónico').fill('mariana@example.com');
+  await page.getByRole('checkbox').check();
+  await submitRegistration(page);
+  const monterreyQr=await page.getByRole('img',{name:'Código QR de tu pase personal'}).getAttribute('src');
+  await expect(page.locator('.badge-event')).toContainText('Monterrey');
+  await expect(page.locator('.badge-event')).toContainText('13 de octubre de 2026');
+  await page.getByRole('button',{name:'Cerrar sesión'}).click();
+  await fillRegistration(page);
+  await submitRegistration(page);
+  const guadalajaraQr=await page.getByRole('img',{name:'Código QR de tu pase personal'}).getAttribute('src');
+  expect(guadalajaraQr).not.toBe(monterreyQr);
+  await page.goto(await backend.magicLink('mariana@example.com'));
+  await page.getByLabel('Consultar otro evento').selectOption({label:'Los DiDis 2026 · Monterrey'});
+  await expect(page.getByRole('img',{name:'Código QR de tu pase personal'})).toHaveAttribute('src',monterreyQr);
+  await expect(page.locator('.badge-event')).toContainText('Monterrey');
+  await page.getByLabel('Consultar otro evento').selectOption({label:'Los DiDis 2026 · Guadalajara'});
+  await expect(page.getByRole('img',{name:'Código QR de tu pase personal'})).toHaveAttribute('src',guadalajaraQr);
+  await page.goto('/');
+  await page.setViewportSize({width:390,height:844});
+  await page.locator('.event-cities').scrollIntoViewIfNeeded();
+  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+  await page.screenshot({path:'test-results/event-cities-mobile.png',fullPage:true});
+});
+
+test('staff switch city metrics and reject another city QR before scanning',async({page,backend})=>{
+  await fillRegistration(page); await submitRegistration(page);
+  const qr=`los-didis:v1:${backend.lastPass.eventSlug}:${backend.lastPass.qrToken}`;
+  await page.goto(await backend.magicLink('multi-staff@example.com',{staff:true,staffEvents:['los-didis-2026-guadalajara','los-didis-2026-monterrey']}));
+  await expect(page.getByLabel('Evento a controlar')).toHaveValue('los-didis-2026-guadalajara');
+  await expect(page.locator('.attendance-totals div').first()).toContainText('1');
+  await page.getByLabel('Evento a controlar').selectOption('los-didis-2026-monterrey');
+  await expect(page.locator('.attendance-totals div').first()).toContainText('0');
+  await page.getByLabel('Contenido del QR (lector externo)').fill(qr);
+  await page.getByRole('button',{name:'Validar QR',exact:true}).click();
+  await expect(page.getByRole('alert')).toContainText('no corresponde al evento seleccionado');
+  expect(backend.requests.filter(r=>r.name==='record_check_in')).toHaveLength(0);
+  await page.getByLabel('Evento a controlar').selectOption('los-didis-2026-guadalajara');
+  await page.getByLabel('Contenido del QR (lector externo)').fill(qr);
+  await page.getByRole('button',{name:'Validar QR',exact:true}).click();
+  await expect(page.locator('.scan-result-accepted')).toBeVisible();
 });

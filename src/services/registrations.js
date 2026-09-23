@@ -1,4 +1,4 @@
-import { event } from '../config';
+import { event, eventOptions } from '../config';
 import { authenticatedRpc } from './supabase';
 
 const API_URL = import.meta.env.VITE_SUPABASE_URL?.replace(/\/$/, '');
@@ -28,7 +28,7 @@ function createAccessCode() {
 
 export function savedAccess() {
   const saved = read(SESSION_KEY);
-  return saved?.eventSlug === event.slug && typeof saved.email === 'string' && CODE_PATTERN.test(saved.accessCode) ? saved : null;
+  return [event.slug,...eventOptions.map(item=>item.slug)].includes(saved?.eventSlug) && typeof saved.email === 'string' && CODE_PATTERN.test(saved.accessCode) ? saved : null;
 }
 export function clearAccess() { remove(SESSION_KEY); remove(PENDING_KEY); }
 
@@ -65,25 +65,28 @@ async function rpc(name, parameters, { attendee = true } = {}) {
   return data;
 }
 
-export async function getEventSettings() {
-  const settings = await rpc('get_event_settings', { p_event_slug: event.slug }, { attendee: false });
+export async function getEventSettings(slug = event.slug) {
+  const settings = await rpc('get_event_settings', { p_event_slug: slug }, { attendee: false });
   if (!settings) throw new Error('El registro aún no está disponible.');
   return settings;
 }
 
 export async function getMyRegistration() {
-  return authenticatedRpc('get_my_registration', { p_event_slug: event.slug });
+  const passes = await authenticatedRpc('get_my_registrations', {});
+  if (!passes.length) throw new Error('No encontramos un gafete activo para tu correo. Completa tu registro para obtenerlo.');
+  return {...passes[0], otherPasses:passes};
 }
 
 export async function registerAttendee(values, privacyVersion) {
+  const slug = values.eventSlug || event.slug;
   const email = normalizeEmail(values.email);
   let pending = read(PENDING_KEY);
-  if (pending?.email !== email || pending?.eventSlug !== event.slug || !CODE_PATTERN.test(pending?.accessCode)) {
-    pending = { email, eventSlug: event.slug, accessCode: createAccessCode() };
+  if (pending?.email !== email || pending?.eventSlug !== slug || !CODE_PATTERN.test(pending?.accessCode)) {
+    pending = { email, eventSlug: slug, accessCode: createAccessCode() };
     write(PENDING_KEY, pending);
   }
   const attendee = await rpc('register_attendee_v2', {
-    p_event_slug: event.slug,
+    p_event_slug: slug,
     p_first_name: values.firstName.trim(),
     p_last_name: values.lastName.trim(),
     p_second_last_name: values.secondLastName.trim(),
@@ -99,16 +102,16 @@ export async function registerAttendee(values, privacyVersion) {
   });
   write(SESSION_KEY, pending);
   remove(PENDING_KEY);
-  return { ...attendee, accessCode: pending.accessCode };
+  return { ...attendee, eventSlug:slug, accessCode: pending.accessCode };
 }
 
-export async function getRegistration(email, code, { remember = true } = {}) {
+export async function getRegistration(email, code, { remember = true, eventSlug = savedAccess()?.eventSlug || event.slug } = {}) {
   const accessCode = normalizeAccessCode(code);
   if (!CODE_PATTERN.test(accessCode)) throw new Error('Escribe el código de consulta de 32 caracteres que guardaste con tu pase.');
   const normalizedEmail = normalizeEmail(email);
   const attendee = await rpc('get_registration', {
-    p_event_slug: event.slug, p_email: normalizedEmail, p_access_code: accessCode,
+    p_event_slug: eventSlug, p_email: normalizedEmail, p_access_code: accessCode,
   });
-  if (remember) write(SESSION_KEY, { email: normalizedEmail, eventSlug: event.slug, accessCode });
-  return { ...attendee, accessCode };
+  if (remember) write(SESSION_KEY, { email: normalizedEmail, eventSlug, accessCode });
+  return { ...attendee, eventSlug, accessCode };
 }

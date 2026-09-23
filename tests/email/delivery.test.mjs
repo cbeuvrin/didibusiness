@@ -11,7 +11,8 @@ test('branded template escapes user text, uses real assets and does not invent e
  assert.ok(mail.html.includes('los-didis-logo-white.png'));
  assert.ok(mail.html.includes('&lt;script&gt;'));
  assert.ok(!mail.html.includes('<script>'));
- assert.ok(mail.html.includes('Fecha y hora por confirmar'));
+ assert.ok(mail.html.includes('Fecha por confirmar'));
+ assert.ok(mail.html.includes('Horario por confirmar'));
  assert.ok(mail.html.includes('Sede por confirmar'));
  assert.ok(mail.html.includes('PASE DE PRUEBA'));
  assert.ok(mail.html.includes('cid:entry-qr'));
@@ -63,4 +64,15 @@ test('cron denies public requests and requires the exact configured secret',()=>
  assert.equal(authorized('Bearer '+secret,undefined),false);
  assert.equal(authorized('Bearer '+secret+'x',secret),false);
  assert.equal(authorized('Bearer '+secret,secret),true);
+});
+
+test('each city appears in the email and its QR payload uses that event',async()=>{
+ const cityJob={...job,city:'Monterrey',dayLabel:'Día 13',eventDate:'2026-10-13',slug:'los-didis-2026-monterrey',eventName:'Los DiDis 2026 · Monterrey'};
+ const mail=registrationEmail(cityJob);
+ assert.ok(mail.html.includes('Monterrey · Sede por confirmar'));
+ assert.ok(mail.html.includes('13 de octubre de 2026'));
+ assert.ok(mail.subject.includes('Monterrey'));
+ const payload=await buildPayload(cityJob);
+ const bytes=Buffer.from(payload.attachments[1].content,'base64');
+ assert.equal((bytes.toString('latin1').match(/\/Type \/Page\b/g)||[]).length,1);
 });

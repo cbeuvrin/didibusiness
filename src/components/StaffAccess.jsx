@@ -1,13 +1,14 @@
 import { useEffect, useRef, useState } from 'react';
 import { Camera, Check, WarningCircle, SignOut } from '@phosphor-icons/react';
 import { supabase, authenticatedRpc } from '../services/supabase';
-import { event } from '../config';
 import EmailSignIn from './EmailSignIn';
 
 const resultLabels = { accepted: 'Entrada registrada', duplicate: 'Este gafete ya ingresó', invalid: 'QR no válido para este evento', revoked: 'Gafete cancelado' };
 const formatTime = value => value ? new Intl.DateTimeFormat('es-MX', {dateStyle:'medium',timeStyle:'medium',timeZone:'America/Mexico_City'}).format(new Date(value)) : '—';
 
 export default function StaffAccess() {
+  const [events, setEvents] = useState([]);
+  const [eventSlug, setEventSlug] = useState('');
   const [session, setSession] = useState(undefined);
   const [access, setAccess] = useState(null);
   const [message, setMessage] = useState('');
@@ -57,8 +58,12 @@ export default function StaffAccess() {
       setSession(data.session);
       if (error) throw new Error('El enlace ya no es válido. Solicita uno nuevo.');
       if (data.session) {
-        const value = await authenticatedRpc('get_staff_access', {p_event_slug:event.slug});
-        if (live) setAccess(value);
+        const choices = await authenticatedRpc('get_staff_events', {});
+        if (live) {
+          setEvents(choices);
+          if (choices.length) setEventSlug(choices[0].slug);
+          else setMessage('Tu cuenta no tiene acceso al control de entradas.');
+        }
       }
     }
     load().catch(error => { if (live) setMessage(error.message); });
@@ -68,14 +73,26 @@ export default function StaffAccess() {
     return () => { live = false; subscription?.unsubscribe(); };
   }, []);
   useEffect(() => {
+    if (!eventSlug || !session) return;
+    let live = true;
+    authenticatedRpc('get_staff_access', {p_event_slug:eventSlug})
+      .then(value => { if (live) setAccess(value); })
+      .catch(error => { if (live) setMessage(error.message); });
+    return () => { live = false; };
+  }, [eventSlug, session]);
+  function chooseEvent(slug) {
+    stopCamera(); setAccess(null); setLog(null); setOffset(0); setMessage('');
+    setResult(null); setFoundPass(null); setManual(''); setFolio(''); setEventSlug(slug);
+  }
+  useEffect(() => {
     if (!access || !online) return;
     let live = true;
     setLogError('');
-    authenticatedRpc('get_attendance_log', {p_event_slug:event.slug,p_offset:offset})
+    authenticatedRpc('get_attendance_log', {p_event_slug:eventSlug,p_offset:offset})
       .then(value => { if (live) setLog(value); })
       .catch(error => { if (live) setLogError(error.message); });
     return () => { live = false; };
-  }, [access, offset, refresh, online]);
+  }, [access, eventSlug, offset, refresh, online]);
 
   async function submitScan(raw, retry = null) {
     if (scanLock.current) return;
@@ -87,17 +104,17 @@ export default function StaffAccess() {
     setResult(null);
     let request = retry;
     if (!request) {
-      const prefix = `los-didis:v1:${event.slug}:`;
+      const prefix = `los-didis:v1:${eventSlug}:`;
       const content = raw.trim();
       if (!content.startsWith(prefix) || !/^[a-f0-9]{64}$/.test(content.slice(prefix.length))) {
-        setMessage('Este QR no corresponde a un gafete de Los DiDis.');
+        setMessage('Este QR no corresponde al evento seleccionado. Revisa la ciudad del gafete.');
         setBusy(false); scanLock.current = false; return;
       }
       request = {token:content.slice(prefix.length),id:crypto.randomUUID()};
     }
     setPending(request);
     try {
-      const value = await authenticatedRpc('record_check_in', {p_event_slug:event.slug,p_qr_token:request.token,p_request_id:request.id});
+      const value = await authenticatedRpc('record_check_in', {p_event_slug:eventSlug,p_qr_token:request.token,p_request_id:request.id});
       if (!active.current) return;
       setResult(value);
       setPending(null);
@@ -112,7 +129,7 @@ export default function StaffAccess() {
     if (scanLock.current || pending || !navigator.onLine) return;
     stopCamera(); scanLock.current = true; setBusy(true); setMessage(''); setResult(null); setFoundPass(null);
     try {
-      const value = await authenticatedRpc('lookup_pass_by_folio', {p_event_slug:event.slug,p_folio:folio.trim()});
+      const value = await authenticatedRpc('lookup_pass_by_folio', {p_event_slug:eventSlug,p_folio:folio.trim()});
       if (active.current) setFoundPass(value);
     } catch (error) { if (active.current) setMessage(error.message); }
     finally { scanLock.current = false; if (active.current) setBusy(false); }
@@ -149,6 +166,7 @@ export default function StaffAccess() {
   if (!access) return <section className="session-status"><h1>Acceso del personal</h1><p role="status">{message || 'Comprobando permisos…'}</p><button className="button button-primary" onClick={logout}>Usar otra cuenta</button></section>;
   return <section className="staff-layout" aria-labelledby="staff-title">
     <div className="staff-heading"><div><p className="section-label">Los DiDis · Personal autorizado</p><h1 id="staff-title">Control de acceso</h1><p>Horario de Ciudad de México · Requiere internet{access.isTest ? ' · Modo de prueba' : ''}</p></div><button className="button button-outline" onClick={logout}>Cerrar sesión<SignOut size={18} /></button></div>
+    <div className="field staff-event"><label htmlFor="staff-event">Evento a controlar</label><select id="staff-event" value={eventSlug} onChange={e => chooseEvent(e.target.value)} disabled={busy || starting || Boolean(pending)}>{events.map(item => <option key={item.slug} value={item.slug}>{item.name}</option>)}</select></div>
     {!online && <p className="form-message" role="alert">Sin conexión. Las entradas no se pueden confirmar hasta recuperar internet.</p>}
     {!access.accessOpen && <p className="form-message" role="status">El control de entradas aún no está abierto para este evento.</p>}
     <div className="staff-grid"><section className="scanner-panel" aria-label="Lector de gafetes">
@@ -164,7 +182,7 @@ export default function StaffAccess() {
       {foundPass && <div className="scan-result" role="status"><h3>Verifica el nombre antes de confirmar</h3><p>{foundPass.name}</p><p>Folio: {foundPass.passId.slice(0,8).toUpperCase()}</p>
         {foundPass.status !== 'active' ? <p>Gafete cancelado. No permite el ingreso.</p> : <>
           {foundPass.checkedInAt && <p>Este gafete ya ingresó: {formatTime(foundPass.checkedInAt)}</p>}
-          <button className="button button-primary" disabled={busy || !online || Boolean(pending) || !access.accessOpen} onClick={() => submitScan(`los-didis:v1:${event.slug}:${foundPass.qrToken}`)}>Confirmar ingreso por folio</button>
+          <button className="button button-primary" disabled={busy || !online || Boolean(pending) || !access.accessOpen} onClick={() => submitScan(`los-didis:v1:${eventSlug}:${foundPass.qrToken}`)}>Confirmar ingreso por folio</button>
         </>}
       </div>}
       {busy && <p role="status">Validando con el servidor…</p>}

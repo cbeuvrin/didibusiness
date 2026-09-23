@@ -1,3 +1,4 @@
+import { emailEventDetails } from './event-details.mjs';
 import PDFDocument from 'pdfkit';
 import { fileURLToPath } from 'node:url';
 const asset = name => fileURLToPath(new URL(`../../public/brand/${name}`,import.meta.url));
@@ -22,10 +23,9 @@ export function createBadgePdf(job, qr) {
     let size=20;
     while(size>9 && doc.fontSize(size).heightOfString(name,{width:320})>65)size--;
     doc.fontSize(size).text(name,50,421,{width:320,height:70,align:'center'});
-    const date=job.startsAt?new Intl.DateTimeFormat('es-MX',{dateStyle:'long',timeStyle:'short',timeZone:'America/Mexico_City'}).format(new Date(job.startsAt)):'Fecha y hora por confirmar';
+    const {date, venue} = emailEventDetails(job);
     doc.fontSize(11).text(date,50,498,{width:320,align:'center'});
     doc.fontSize(9).text(job.startsAt?'Horario de Ciudad de México':'',50,519,{width:320,align:'center'});
-    const venue=job.venue||'Sede por confirmar';
     let venueSize=11;
     while(venueSize>7 && doc.fontSize(venueSize).heightOfString(venue,{width:320})>36)venueSize--;
     doc.fontSize(venueSize).text(venue,50,536,{width:320,height:36,align:'center'});

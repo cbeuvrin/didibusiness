@@ -20,6 +20,8 @@ export function rpcStatement(name, body) {
   const params = {
     register_attendee_v2:['p_event_slug','p_first_name','p_last_name','p_second_last_name','p_email','p_confirm_email','p_access_code','p_phone','p_state','p_extra_1','p_extra_2','p_privacy_accepted','p_privacy_version'],
     get_registration:['p_event_slug','p_email','p_access_code'],
+    get_my_registrations:[],
+    get_staff_events:[],
     get_my_registration:['p_event_slug'],
     get_event_settings:['p_event_slug'],
     lookup_pass_by_folio:['p_event_slug','p_folio'],
