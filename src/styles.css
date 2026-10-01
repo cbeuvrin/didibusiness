@@ -29,7 +29,7 @@ main:focus { outline: none; }
 .skip-link { position: fixed; top: 10px; left: 10px; padding: 12px 20px; background: var(--ink); color: white; transform: translateY(-160%); z-index: 5; }
 .skip-link:not(:focus) { clip-path: inset(100%); pointer-events: none; }
 .skip-link:focus { transform: translateY(0); }
-.stage { position: relative; isolation: isolate; overflow: clip; background: #f4770b; }
+.stage { --artwork-corner: clamp(150px, min(40vw, 42svh), 680px); position: relative; isolation: isolate; overflow: clip; background: #f4770b; }
 /* Keep the original artwork's square corners intact as the page changes shape.
    The middle strips stretch to fill the space between the four corner slices. */
 .stage::before {
@@ -38,7 +38,7 @@ main:focus { outline: none; }
   inset: 98px 0 0;
   z-index: -1;
   pointer-events: none;
-  border-image: url("/brand/fondo-nuevo.jpg") 45% fill / clamp(150px, min(40vw, 42svh), 680px) / 0 stretch;
+  border-image: url("/brand/fondo-nuevo.jpg") 45% fill / var(--artwork-corner) / 0 stretch;
 }
 .header { position: relative; z-index: 1; width: 100%; max-width: 1760px; padding: 30px clamp(24px, 5.55vw, 80px); margin: 0 auto; display: flex; justify-content: space-between; align-items: center; gap: 20px; min-height: 98px; }
 .brand { display: inline-flex; align-items: center; gap: 11px; flex-shrink: 0; }
@@ -46,6 +46,10 @@ main:focus { outline: none; }
 .header-link { display: inline-flex; align-items: center; gap: 10px; min-height: 40px; border: 0; background: transparent; padding: 6px 12px; font-size: 12px; font-weight: 650; border-radius: 4px; }
 .header-link:hover { background: #ffffff30; color: var(--ink); }
 .landing-stage { min-height: clamp(720px, 88svh, 1080px); display: flex; flex-direction: column; }
+.landing-stage::before { inset: 0; }
+/* Place navigation just below the DiDi logo embedded in the artwork. */
+.landing-stage > .header { position: absolute; top: calc(var(--artwork-corner) * .3 + 10px); right: calc(var(--artwork-corner) * .15); width: auto; min-height: 0; margin: 0; padding: 0; }
+.landing-stage .header-link { padding-inline: 0; }
 .landing-stage main { flex: 1; display: grid; align-items: center; }
 .hero-content { text-align: center; position: relative; width: 100%; max-width: 1160px; margin: 0 auto; padding: 70px 24px 125px; }
 .eyebrow { font-size: 10px; font-weight: 700; letter-spacing: .23em; text-transform: uppercase; margin-bottom: 24px; }
@@ -156,7 +160,7 @@ main:focus { outline: none; }
   .confirmation { grid-template-columns: minmax(0, 1fr); max-width: 540px; gap: 36px; }
 }
 @media (max-width: 767px) {
-  .stage::before { top: 90px; }
+  .inner-stage::before { top: 90px; }
   .header { min-height: 90px; padding: 25px 24px; }
   .header .brand img { width: 122px; }
   .header-link { font-size: 10px; gap: 6px; }
