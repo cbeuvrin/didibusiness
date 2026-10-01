@@ -32,13 +32,11 @@ function EventDetails({ compact = false, details = event }) {
 function Landing() {
   return <>
     <div className="hero-content enter">
-      <p className="eyebrow">El próximo encuentro empieza contigo</p>
       <h1 className="hero-title"><span className="sr-only">Los DiDis 2026</span><img src="/brand/los-didis-logo-white.png" width="1746" height="422" alt="" fetchPriority="high" /></h1>
       <p className="hero-description">{event.description}</p>
       <div className="hero-actions"><a className="button button-outline" href="#acceso">Ya estoy registrado</a><a className="button button-primary" href="#registro">Registrarme<ArrowUpRight size={20} /></a></div>
       <p className="hero-date">Guadalajara <span>/</span> Monterrey <span>/</span> CDMX</p>
     </div>
-    <div className="hero-bottom"><span>Ideas que nos acercan.</span><span>Conexiones que nos impulsan.</span></div>
   </>;
 }
 function Information() {

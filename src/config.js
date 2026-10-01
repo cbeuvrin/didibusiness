@@ -1,7 +1,7 @@
 export const event = {
   slug: 'los-didis-2026', name: 'Los DiDis 2026',
   date: 'Fecha por confirmar', time: 'Horario por confirmar', venue: 'Sede por confirmar',
-  description: 'Un espacio para compartir ideas, crear conexiones y abrir nuevas oportunidades.',
+  description: 'Hoy el viaje es para ti',
 };
 export const eventOptions = [
   {slug:'los-didis-2026-guadalajara',city:'Guadalajara',date:'2026-10-08',venue:'Salón Benavento',
